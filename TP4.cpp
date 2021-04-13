@@ -30,18 +30,49 @@ vpImage<uchar> wta(vpImage<uchar> I1, vpImage<uchar> I2) {
     }
     return res;
 }
-vpImage<uchar> ssd(vpImage<uchar> I1, vpImage<uchar> I2) {
+
+double convolution(const vpImage< uchar > &I1, int i1, int j1,  const vpImage< uchar > &I2, int i2, int j2,  vpImage< double >  K)
+{   
+    // Si le filtre dépasse de l'image au niveau des colonnes ou des lignes on revoie 0
+    double res=0;
+    for(int k=0;k<K.getRows();k++){
+        for(int l=0;l<K.getCols();l++){
+            int v1 = 0;
+            if(i1-(int)(K.getRows()/2)>=0 && j1-(int)(K.getCols()/2)>=0){
+                if(i1+(int)(K.getRows()/2)<I1.getHeight() && j1+(int)(K.getCols()/2)<I1.getWidth()){
+                    //n l'indice de la ligne courante
+                    int n =i1+k-(int)(K.getRows()/2);
+                    //m l'indice de la colonne courante
+                    int m =j1+l-(int)(K.getCols()/2);
+                    v1=I1[n][m];
+                }
+            }
+            int v2 = 0;
+            if(i2-(int)(K.getRows()/2)>=0 && j2-(int)(K.getCols()/2)>=0){
+                if(i2+(int)(K.getRows()/2)<I2.getHeight() && j2+(int)(K.getCols()/2)<I2.getWidth()){
+                    //n l'indice de la ligne courante
+                    int n =i2+k-(int)(K.getRows()/2);
+                    //m l'indice de la colonne courante
+                    int m =j2+l-(int)(K.getCols()/2);
+                    v2=I2[n][m];
+                }
+            }
+            res+=K[k][l]*pow(v1-v2,2);  
+        }   
+    }
+    return res;
+}
+
+vpImage<uchar> ssd(vpImage<uchar> I1, vpImage<uchar> I2,  vpImage< double >  K) {
     vpImage<uchar> res(I1.getRows(),I1.getCols());
     for(int i =0;i<I1.getRows();i++){
         for(int j=0;j<I1.getCols();j++){
             int indiceMin=0;
-            int min = 255;
+            int min = 255*K.getRows()*K.getCols();
             for(int k=0;k<I2.getCols();k++){
-                //TODO: faire le truc de minimisation avec une fonction auxiliaire boloss
-                //TODO calculer la valeur avec la nouvelle fonction
-                float untruc;
-                if(untruc<min){
-                     min = untruc;
+                double diff = convolution(I1,i,j,I2,i,k,K);
+                if(diff<min){
+                     min = diff;
                     indiceMin=k;
                 }
             }
@@ -50,6 +81,7 @@ vpImage<uchar> ssd(vpImage<uchar> I1, vpImage<uchar> I2) {
     }
     return res;
 }
+
 int main() {
     vpImage<unsigned char> Ileft;
     vpImage<unsigned char> Iright;
@@ -106,6 +138,45 @@ int main() {
             vpDisplay::display(Iwta) ;
             vpDisplay::flush(Iwta) ;
             vpDisplay::getClick(Iwta);
+
+            int tailleMasque;
+            cout << "Choisissez la taille du masque" << endl;
+            cin >> tailleMasque;
+            vpImage<double> K(tailleMasque,tailleMasque);
+            if(tailleMasque == 1) {
+                K[0][0] = 1;
+                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
+                vpDisplay::display(Issd) ;
+                vpDisplay::flush(Issd) ;
+                vpDisplay::getClick(Issd);
+            }
+            else if(tailleMasque == 3) {
+                K[0][0] = 1/16; K[0][1] = 2/16; K[0][2] = 1/16; 
+                K[1][0] = 2/16; K[1][1] = 4/16; K[1][2] = 2/16;
+                K[2][0] = 1/16; K[2][1] = 2/16; K[2][2] = 1/16;
+                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
+                vpDisplay::display(Issd) ;
+                vpDisplay::flush(Issd) ;
+                vpDisplay::getClick(Issd);
+            }
+            else if(tailleMasque == 7) {
+                K[0][0] = 1;
+                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
+                vpDisplay::display(Issd) ;
+                vpDisplay::flush(Issd) ;
+                vpDisplay::getClick(Issd);
+            }
+            else if(tailleMasque == 20) {
+                K[0][0] = 1;
+                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
+                vpDisplay::display(Issd) ;
+                vpDisplay::flush(Issd) ;
+                vpDisplay::getClick(Issd);
+            }
         }
         else if(choix == 3) {
             vpDisplayX dg(Icedar_l,10,10,"Icedar_l") ;

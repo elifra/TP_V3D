@@ -13,15 +13,17 @@
 
 using namespace std ;
 
-vpImage<uchar> wta(vpImage<uchar> I1, vpImage<uchar> I2) {
-    vpImage<uchar> res(I1.getRows(),I1.getCols());
+bool bord = false;
+
+vpImage<float> wta(vpImage<uchar> I1, vpImage<uchar> I2) {
+    vpImage<float> res(I1.getRows(),I1.getCols());
     for(int i =0;i<I1.getRows();i++){
         for(int j=0;j<I1.getCols();j++){
             int indiceMin=0;
             int min = 255;
             for(int k=0;k<I2.getCols();k++){
-                if(abs(I1[i][j]-I2[i][k])<min){
-                    min = abs(I1[i][j]-I2[i][k]);
+                if(abs((int) (I1[i][j]) - (int) (I2[i][k]))<min){
+                    min = abs((int) (I1[i][j]) - (int) (I2[i][k]));
                     indiceMin=k;
                 }
             }
@@ -31,50 +33,65 @@ vpImage<uchar> wta(vpImage<uchar> I1, vpImage<uchar> I2) {
     return res;
 }
 
-double convolution(const vpImage< uchar > &I1, int i1, int j1,  const vpImage< uchar > &I2, int i2, int j2,  vpImage< double >  K)
+vpImage< uchar >  getCell(vpImage< uchar > &I, int i, int j,int taille)
 {   
+    vpImage< uchar >  res(taille,taille,0);
     // Si le filtre dépasse de l'image au niveau des colonnes ou des lignes on revoie 0
-    double res=0;
-    for(int k=0;k<K.getRows();k++){
-        for(int l=0;l<K.getCols();l++){
-            int v1 = 0;
-            if(i1-(int)(K.getRows()/2)>=0 && j1-(int)(K.getCols()/2)>=0){
-                if(i1+(int)(K.getRows()/2)<I1.getHeight() && j1+(int)(K.getCols()/2)<I1.getWidth()){
-                    //n l'indice de la ligne courante
-                    int n =i1+k-(int)(K.getRows()/2);
-                    //m l'indice de la colonne courante
-                    int m =j1+l-(int)(K.getCols()/2);
-                    v1=I1[n][m];
-                }
-            }
-            int v2 = 0;
-            if(i2-(int)(K.getRows()/2)>=0 && j2-(int)(K.getCols()/2)>=0){
-                if(i2+(int)(K.getRows()/2)<I2.getHeight() && j2+(int)(K.getCols()/2)<I2.getWidth()){
-                    //n l'indice de la ligne courante
-                    int n =i2+k-(int)(K.getRows()/2);
-                    //m l'indice de la colonne courante
-                    int m =j2+l-(int)(K.getCols()/2);
-                    v2=I2[n][m];
-                }
-            }
-            res+=K[k][l]*pow(v1-v2,2);  
-        }   
+    if(i-(int)(taille/2)<0 || j-(int)(taille/2)<0){
+        bord = true;
+        return res;
+    }
+    if(i+(int)(taille/2)>=I.getHeight() || j+(int)(taille/2)>=I.getWidth()){
+        bord = true;
+        return res;
+    }
+    else{
+        bord = false;
+        for(int k=0;k<taille;k++){
+            for(int l=0;l<taille;l++){
+                //n l'indice de la ligne courante
+                int n =i+k-(int)(taille/2);
+                //m l'indice de la colonne courante
+                int m =j+l-(int)(taille/2);
+                res[k][l]=I[n][m];  
+            }   
+        }
+        return res;
+    }
+}
+
+float compute(vpImage< uchar > cell_I1,vpImage< uchar > cell_I2,vpImage< double > K, int taille){
+    double res =0;
+    for(int i=0;i<taille;i++){
+        for(int j=0;j<taille;j++){
+            float tmp = (float) (cell_I1[i][j])- (float) (cell_I2[i][j]);
+            res+= K[i][j]*pow(tmp,2);
+        }
     }
     return res;
 }
 
-vpImage<uchar> ssd(vpImage<uchar> I1, vpImage<uchar> I2,  vpImage< double >  K) {
-    vpImage<uchar> res(I1.getRows(),I1.getCols());
+vpImage<float> ssd(vpImage<uchar> I1, vpImage<uchar> I2,  vpImage< double >  K) {
+    vpImage<float> res(I1.getRows(),I1.getCols());
     for(int i =0;i<I1.getRows();i++){
         for(int j=0;j<I1.getCols();j++){
             int indiceMin=0;
             int min = 255*K.getRows()*K.getCols();
-            for(int k=0;k<I2.getCols();k++){
-                double diff = convolution(I1,i,j,I2,i,k,K);
-                if(diff<min){
-                     min = diff;
-                    indiceMin=k;
+            vpImage< uchar > cell_I1=getCell(I1,i,j,K.getRows());
+            if(!bord) {
+                for(int k=0;k<I2.getCols();k++){
+                    vpImage< uchar > cell_I2=getCell(I2,i,k,K.getRows());
+                    if(!bord) {
+                        float diff = compute(cell_I1,cell_I2,K,K.getRows());
+                        if(diff<min){
+                            min = diff;
+                            indiceMin=k;
+                        }
+                    }
                 }
+            }
+            else{
+                indiceMin=j;
             }
             res[i][j]=abs(j-indiceMin);
         }
@@ -133,29 +150,36 @@ int main() {
             
             std::cout<<"Niquel frère, c'est rectifié ça ! j'y mettrais ma main au feu"<<std::endl;
             
-            vpImage<uchar> Iwta =wta(Iscene_l,Iscene_r);
+            vpImage<float> IwtaF =wta(Iscene_l,Iscene_r);
+            vpImage<uchar> Iwta;
+            vpImageConvert::convert(IwtaF,Iwta);
             vpDisplayX dwta(Iwta,1000,10,"carte de disparité avec WTA") ;
             vpDisplay::display(Iwta) ;
             vpDisplay::flush(Iwta) ;
             vpDisplay::getClick(Iwta);
 
             int tailleMasque;
-            cout << "Choisissez la taille du masque" << endl;
+            cout << "Choisissez la taille du masque (1;3;7;20)" << endl;
             cin >> tailleMasque;
             vpImage<double> K(tailleMasque,tailleMasque);
             if(tailleMasque == 1) {
                 K[0][0] = 1;
-                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+                vpImage<uchar> Issd;
+                vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
                 vpDisplay::display(Issd) ;
                 vpDisplay::flush(Issd) ;
                 vpDisplay::getClick(Issd);
             }
             else if(tailleMasque == 3) {
-                K[0][0] = 1/16; K[0][1] = 2/16; K[0][2] = 1/16; 
-                K[1][0] = 2/16; K[1][1] = 4/16; K[1][2] = 2/16;
-                K[2][0] = 1/16; K[2][1] = 2/16; K[2][2] = 1/16;
-                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                K[0][0] = 1./16.; K[0][1] = 2./16.; K[0][2] = 1./16.; 
+                K[1][0] = 2./16.; K[1][1] = 4./16.; K[1][2] = 2./16.;
+                K[2][0] = 1./16.; K[2][1] = 2./16.; K[2][2] = 1./16.;
+                cout << K << endl;
+                vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+                vpImage<uchar> Issd;
+                vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
                 vpDisplay::display(Issd) ;
                 vpDisplay::flush(Issd) ;
@@ -163,7 +187,9 @@ int main() {
             }
             else if(tailleMasque == 7) {
                 K[0][0] = 1;
-                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+                vpImage<uchar> Issd;
+                vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
                 vpDisplay::display(Issd) ;
                 vpDisplay::flush(Issd) ;
@@ -171,7 +197,9 @@ int main() {
             }
             else if(tailleMasque == 20) {
                 K[0][0] = 1;
-                vpImage<uchar> Issd =ssd(Iscene_l,Iscene_r,K);
+                vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+                vpImage<uchar> Issd;
+                vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
                 vpDisplay::display(Issd) ;
                 vpDisplay::flush(Issd) ;

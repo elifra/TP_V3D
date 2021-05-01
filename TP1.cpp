@@ -99,9 +99,11 @@ int main()
 
   //Calcul droite épipolaire
   vpColVector p1(3,0);
-  p1[0] = 150; p1[1] = 100; p1[2] = 1;
+  p1[0] = 100; p1[1] = 150; p1[2] = 1;
   vpColVector p2(3,0);
   p2[0] = 50; p2[1] = 75; p2[2] = 1;
+  vpColVector p3(3,0);
+  p3[0] = 150; p3[1] = 75; p3[2] = 1;
 
   cout << "équation de la droite liée à p1" << endl;
   vpColVector droite1 = m_1F2*p1;
@@ -110,6 +112,66 @@ int main()
   cout << "équation de la droite liée à p2" << endl;
   vpColVector droite2 = m_1F2*p2;
   cout << droite2 << endl;
+
+  cout << "équation de la droite liée à p3" << endl;
+  vpColVector droite3 = m_1F2*p3;
+  cout << droite3 << endl;
+
+  //droite sur image I1
+  vpDisplayX d1_droite(I1,10,10,"I1 avec droites") ;
+  vpDisplay::display(I1) ;
+  vpDisplay::displayLine(I1,-droite1[2]/droite1[1],0,-(droite1[2]+I1.getWidth()*droite1[0])/droite1[1],I1.getWidth(),vpColor::red,1,false);
+  vpDisplay::displayLine(I1,-droite2[2]/droite2[1],0,-(droite2[2]+I1.getWidth()*droite2[0])/droite2[1],I1.getWidth(),vpColor::blue,1,false);
+  vpDisplay::displayLine(I1,-droite3[2]/droite3[1],0,-(droite3[2]+I1.getWidth()*droite3[0])/droite3[1],I1.getWidth(),vpColor::green,1,false);
+  vpDisplay::flush(I1) ;
+
+
+  // On affiche l'image I2
+  vpDisplayX d2(I2,10,400,"I2") ;
+  vpDisplay::display(I2) ;
+  vpDisplay::displayCross(I2,150,100,5,vpColor::red); //p1
+  vpDisplay::displayCross(I2,75,50,5,vpColor::blue); //p2
+  vpDisplay::displayCross(I2,75,150,5,vpColor::green); //p3
+  vpDisplay::flush(I2) ;
+
+  /**
+  * Q10, 11, 12
+  **/
+
+  vpHomogeneousMatrix c2To(0.1,0,1.9,vpMath::rad(5),vpMath::rad(5),vpMath::rad(5));
+  //on simule l'image vue par c2
+  sim.setCameraPosition(c2To);
+  // on recupère l'image I2
+  sim.getImage(I2,cam);
+  cout << "Nouvelle image 2Tw " <<endl ;
+  cout << c2To << endl ;
+
+  c1T2 = c1Tw*c2To.inverse();
+ 
+  R = c1T2.getRotationMatrix();
+
+  m_1t2x = c1T2.getTranslationVector().skew();
+  cout << "Nouvelle Matrice m_1t2x" << endl;
+  cout << m_1t2x << endl; 
+
+  m_1F2 = inverseK.transpose()*m_1t2x*R*inverseK;
+  cout << "Nouvelle Matrice fondamentale" << endl;
+  cout << m_1F2 << endl;
+
+  //Calcul droite épipolaire
+
+  cout << "équation de la droite liée à p1" << endl;
+  droite1 = m_1F2*p1;
+  cout << droite1 << endl;
+
+  cout << "équation de la droite liée à p2" << endl;
+  droite2 = m_1F2*p2;
+  cout << droite2 << endl;
+
+  cout << "équation de la droite liée à p3" << endl;
+  droite3 = m_1F2*p3;
+  cout << droite3 << endl;
+  cout << m_1F2 << endl;
 /*
   // On affiche l'image I1
   vpDisplayX d1(I1,10,10,"I1") ;
@@ -117,19 +179,20 @@ int main()
   vpDisplay::flush(I1) ;
 */
   //droite sur image I1
-  vpDisplayX d1_droite(I1,10,10,"I1 avec droite") ;
+  vpDisplayX d1_droiteQ12(I1,10,10,"I1 avec droite Q12") ;
   vpDisplay::display(I1) ;
   vpDisplay::displayLine(I1,-droite1[2]/droite1[1],0,-(droite1[2]+I1.getWidth()*droite1[0])/droite1[1],I1.getWidth(),vpColor::red,1,false);
   vpDisplay::displayLine(I1,-droite2[2]/droite2[1],0,-(droite2[2]+I1.getWidth()*droite2[0])/droite2[1],I1.getWidth(),vpColor::blue,1,false);
+  vpDisplay::displayLine(I1,-droite3[2]/droite3[1],0,-(droite3[2]+I1.getWidth()*droite3[0])/droite3[1],I1.getWidth(),vpColor::green,1,false);
   vpDisplay::flush(I1) ;
 
-  //Point sur I2
 
   // On affiche l'image I2
-  vpDisplayX d2(I2,10,400,"I2") ;
+  vpDisplayX d2Q12(I2,10,400,"I2 Q12") ;
   vpDisplay::display(I2) ;
-  vpDisplay::displayCross(I2,200,100,5,vpColor::red);
-  vpDisplay::displayCross(I2,75,50,5,vpColor::blue);
+  vpDisplay::displayCross(I2,150,100,5,vpColor::red); //p1
+  vpDisplay::displayCross(I2,75,50,5,vpColor::blue); //p2
+  vpDisplay::displayCross(I2,75,150,5,vpColor::green); //p3
   vpDisplay::flush(I2) ;
 
 

@@ -159,7 +159,7 @@ int main() {
             vpDisplay::getClick(Iwta);
 
             int tailleMasque;
-            cout << "Choisissez la taille du masque (1;3;7;20)" << endl;
+            cout << "Choisissez la taille du masque (1;3;7;21)" << endl;
             cin >> tailleMasque;
             vpImage<double> K(tailleMasque,tailleMasque);
             if(tailleMasque == 1) {
@@ -178,6 +178,14 @@ int main() {
                 K[2][0] = 1./16.; K[2][1] = 2./16.; K[2][2] = 1./16.;
                 cout << K << endl;
                 vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+                
+                //On affiche l'inverse de la disparité 
+                for(int i = 0; i < IssdF.getRows(); i++) {
+                    for(int j = 0; j < IssdF.getCols(); j++) {
+                        if(IssdF[i][j] != 0) IssdF[i][j] = 1./IssdF[i][j];
+                        else IssdF[i][j] = 1;
+                    }
+                }
                 vpImage<uchar> Issd;
                 vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
@@ -186,8 +194,22 @@ int main() {
                 vpDisplay::getClick(Issd);
             }
             else if(tailleMasque == 7) {
-                K[0][0] = 1;
+                K[0][0] = 1./484.; K[0][1] = 2./484.; K[0][2] = 4./484.; K[0][3] = 8./484.; K[0][4] = 4./484.; K[0][5] = 2./484.; K[0][6] = 1./484.; 
+                K[1][0] = 2./484.; K[1][1] = 4./484.; K[1][2] = 8./484.; K[1][3] = 16./484.; K[1][4] = 8./484.; K[1][5] = 4./484.; K[1][6] = 2./484.;
+                K[2][0] = 4./484.; K[2][1] = 8./484.; K[2][2] = 16./484.; K[2][3] = 32./484.; K[2][4] = 16./484.; K[2][5] = 8./484.; K[2][6] = 4./484.;
+                K[3][0] = 8./484.; K[3][1] = 16./484.; K[3][2] = 32./484.; K[3][3] = 64./484.; K[3][4] = 32./484.; K[3][5] = 16./484.; K[3][6] = 8./484.; 
+                K[4][0] = 4./484.; K[4][1] = 8./484.; K[4][2] = 16./484.; K[4][3] = 32./484.; K[4][4] = 16./484.; K[4][5] = 8./484.; K[4][6] = 4./484.;
+                K[5][0] = 2./484.; K[5][1] = 4./484.; K[5][2] = 8./484.; K[5][3] = 16./484.; K[5][4] = 8./484.; K[5][5] = 4./484.; K[5][6] = 2./484.;
+                K[6][0] = 1./484.; K[6][1] = 2./484.; K[6][2] = 4./484.; K[6][3] = 8./484.; K[6][4] = 4./484.; K[6][5] = 2./484.; K[6][6] = 1./484.;
                 vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
+
+                //On affiche l'inverse de la disparité 
+                for(int i = 0; i < IssdF.getRows(); i++) {
+                    for(int j = 0; j < IssdF.getCols(); j++) {
+                        if(IssdF[i][j] != 0) IssdF[i][j] = 1./IssdF[i][j];
+                        else IssdF[i][j] = 1;
+                    }
+                }
                 vpImage<uchar> Issd;
                 vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
@@ -195,7 +217,7 @@ int main() {
                 vpDisplay::flush(Issd) ;
                 vpDisplay::getClick(Issd);
             }
-            else if(tailleMasque == 20) {
+            else if(tailleMasque == 21) {
                 K[0][0] = 1;
                 vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
                 vpImage<uchar> Issd;

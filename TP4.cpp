@@ -134,7 +134,7 @@ int main() {
             vpDisplay::display(Iright) ;
             vpDisplay::flush(Iright) ;
             vpDisplay::getClick(Iright);
-            std::cout<<"Mais c'est pas rectifié frère"<<std::endl;
+            std::cout<<"PAS RECTIFIE"<<std::endl;
             
         }
         else if(choix == 2) {
@@ -148,7 +148,7 @@ int main() {
             vpDisplay::flush(Iscene_r) ;
             vpDisplay::getClick(Iscene_r);
             
-            std::cout<<"Niquel frère, c'est rectifié ça ! j'y mettrais ma main au feu"<<std::endl;
+            std::cout<<"C'EST RECTIFIE !"<<std::endl;
             
             vpImage<float> IwtaF =wta(Iscene_l,Iscene_r);
             vpImage<uchar> Iwta;
@@ -159,7 +159,7 @@ int main() {
             vpDisplay::getClick(Iwta);
 
             int tailleMasque;
-            cout << "Choisissez la taille du masque (1;3;7;21)" << endl;
+            cout << "Choisissez la taille du masque (1;3;7)" << endl;
             cin >> tailleMasque;
             vpImage<double> K(tailleMasque,tailleMasque);
             if(tailleMasque == 1) {
@@ -210,16 +210,6 @@ int main() {
                         else IssdF[i][j] = 1;
                     }
                 }
-                vpImage<uchar> Issd;
-                vpImageConvert::convert(IssdF,Issd);
-                vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;
-                vpDisplay::display(Issd) ;
-                vpDisplay::flush(Issd) ;
-                vpDisplay::getClick(Issd);
-            }
-            else if(tailleMasque == 21) {
-                K[0][0] = 1;
-                vpImage<float> IssdF =ssd(Iscene_l,Iscene_r,K);
                 vpImage<uchar> Issd;
                 vpImageConvert::convert(IssdF,Issd);
                 vpDisplayX dssd(Issd,1100,10,"carte de disparité avec SSD") ;

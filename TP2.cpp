@@ -134,7 +134,7 @@ int main()
   DLT(vectI2,vectI1,H);
 
   
-  /*cout << "Notre Homographie: " << endl;
+  cout << "Notre Homographie: " << endl;
   cout << H << endl;
   cout << "" << endl;
 
@@ -144,7 +144,7 @@ int main()
   x1 = H*x2;
   x1 = x1/x1[2];
   cout << "x2=(" << x2[1] << "," << x2[0] << ",1), x1 = " << endl;
-  cout << x1 << endl;*/
+  cout << x1 << endl;
 
   // cette partie du code calcule la position exacte et précise des 5 centres de gravités des points dans les 2 images. Ce seront vos mesures
     for(unsigned int i=0; i<nb; i++)
@@ -156,7 +156,7 @@ int main()
 	char s[10] ;
 	sprintf(s,"%d",i) ;
         vpDisplay::displayCross(I1,p1[i],10,vpColor::blue) ;
-        vpDisplay::displayCharString(I1,p1[i],s,vpColor::red) ;
+        //vpDisplay::displayCharString(I1,p1[i],s,vpColor::red) ;
         vpDisplay::flush(I1) ;
       }
 
@@ -213,6 +213,7 @@ int main()
                 vpDisplay::displayCross(I1,point1,10,vpColor::blue);
                 vpDisplay::flush(I1);
                 */
+                
                 vpImagePoint point1 = correspondance(p2[i],H);
                 vpDisplay::displayCross(I1,point1,10,vpColor::red);
                 float distance = sqrt(pow(point1.get_u()-p1[i].get_u(),2)+pow(point1.get_v()-p1[i].get_v(),2));
@@ -224,6 +225,8 @@ int main()
   }
   vpImage<unsigned char> I1tmp=I1;
   DLT(vectI1,vectI2,H);
+  cout << "Matrice homogène" << endl;
+  cout << H << endl;
  //TODO: pzrcourir tt image 1 et melangé les points correspondant
   for(int i=0;i<I1.getHeight();i++){
     for(int j=0;j<I1.getWidth();j++){
